@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامج توزيع الجدول المدرسي</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState } = React;
+        
+        // Lucide Icons as SVG components
+        const Plus = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14"/><path d="M12 5v14"/>
+            </svg>
+        );
+        
+        const Trash2 = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                <line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>
+            </svg>
+        );
+        
+        const Calendar = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/>
+                <line x1="3" x2="21" y1="10" y2="10"/>
+            </svg>
+        );
+        
+        const Users = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+        );
+        
+        const BookOpen = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+        );
+        
+        const Settings = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        );
+
+        function TeacherScheduleApp() {
+          const [teachers, setTeachers] = useState([]);
+          const [classes, setClasses] = useState([]);
+          const [subjectAllocation, setSubjectAllocation] = useState({});
+          const [schedule, setSchedule] = useState(null);
+          const [newTeacher, setNewTeacher] = useState({ name: '', subjects: '' });
+          const [newClass, setNewClass] = useState('');
+          const [showAllocation, setShowAllocation] = useState(false);
+
+          const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+          const periods = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5', 'الحصة 6'];
+
+          const addTeacher = () => {
+            if (newTeacher.name && newTeacher.subjects) {
+              const subjects = newTeacher.subjects.split(',').map(s => s.trim());
+              setTeachers([...teachers, {
+                id: Date.now(),
+                name: newTeacher.name,
+                subjects
+              }]);
+              setNewTeacher({ name: '', subjects: '' });
+            }
+          };
+
+          const addClass = () => {
+            if (newClass && !classes.includes(newClass)) {
+              setClasses([...classes, newClass]);
+              setNewClass('');
+            }
+          };
+
+          const removeTeacher = (id) => {
+            setTeachers(teachers.filter(t => t.id !== id));
+          };
+
+          const removeClass = (className) => {
+            setClasses(classes.filter(c => c !== className));
+          };
+
+          const updateAllocation = (className, subject, count) => {
+            setSubjectAllocation(prev => ({
+              ...prev,
+              [className]: {
+                ...(prev[className] || {}),
+                [subject]: parseInt(count) || 0
+              }
+            }));
+          };
+
+          const getAllSubjects = () => {
+            const allSubjects = new Set();
+            teachers.forEach(teacher => {
+              teacher.subjects.forEach(subject => allSubjects.add(subject));
+            });
+            return Array.from(allSubjects);
+          };
+
+          const generateSchedule = () => {
+            if (teachers.length === 0 || classes.length === 0) {
+              alert('الرجاء إضافة معلمين وفصول أولاً');
+              return;
+            }
+
+            const newSchedule = {};
+            const teacherUsage = {};
+            
+            classes.forEach(className => {
+              newSchedule[className] = {};
+              days.forEach(day => {
+                newSchedule[className][day] = [];
+              });
+
+              const classAllocation = subjectAllocation[className] || {};
+              const subjectsList = [];
+              
+              Object.entries(classAllocation).forEach(([subject, count]) => {
+                for (let i = 0; i < count; i++) {
+                  subjectsList.push(subject);
+                }
+              });
+
+              subjectsList.sort(() => Math.random() - 0.5);
+
+              let subjectIndex = 0;
+              let dayIndex = 0;
+              let periodIndex = 0;
+
+              while (subjectIndex < subjectsList.length && dayIndex < days.length) {
+                const day = days[dayIndex];
+                
+                if (periodIndex >= periods.length) {
+                  dayIndex++;
+                  periodIndex = 0;
+                  continue;
+                }
+
+                const period = periods[periodIndex];
+                const subject = subjectsList[subjectIndex];
+                
+                const eligibleTeachers = teachers.filter(t => t.subjects.includes(subject));
+                
+                const availableTeachers = eligibleTeachers.filter(teacher => {
+                  const key = `${day}-${period}`;
+                  return !teacherUsage[teacher.name]?.[key];
+                });
+
+                if (availableTeachers.length > 0) {
+                  const teacher = availableTeachers[Math.floor(Math.random() * availableTeachers.length)];
+                  
+                  newSchedule[className][day].push({
+                    period,
+                    teacher: teacher.name,
+                    subject
+                  });
+
+                  if (!teacherUsage[teacher.name]) {
+                    teacherUsage[teacher.name] = {};
+                  }
+                  teacherUsage[teacher.name][`${day}-${period}`] = true;
+
+                  subjectIndex++;
+                }
+                
+                periodIndex++;
+              }
+
+              days.forEach(day => {
+                const existingPeriods = newSchedule[className][day].length;
+                for (let i = existingPeriods; i < periods.length; i++) {
+                  newSchedule[className][day].push({
+                    period: periods[i],
+                    teacher: '-',
+                    subject: 'فراغ'
+                  });
+                }
+              });
+            });
+
+            setSchedule(newSchedule);
+          };
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6" dir="rtl">
+              <div className="max-w-7xl mx-auto">
+                <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
+                  <h1 className="text-4xl font-bold text-center text-indigo-900 mb-2 flex items-center justify-center gap-3">
+                    <Calendar />
+                    برنامج توزيع الجدول المدرسي
+                  </h1>
+                  <p className="text-center text-gray-600">نظام ذكي لتوزيع المواد والحصص على المعلمين والفصول</p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h2 className="text-2xl font-bold text-indigo-800 mb-4 flex items-center gap-2">
+                      <Users />
+                      المعلمون
+                    </h2>
+                    
+                    <div className="space-y-3 mb-4">
+                      <input
+                        type="text"
+                        placeholder="اسم المعلم"
+                        value={newTeacher.name}
+                        onChange={(e) => setNewTeacher({...newTeacher, name: e.target.value})}
+                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+                      />
+                      <input
+                        type="text"
+                        placeholder="المواد (مثال: رياضيات, فيزياء, كيمياء)"
+                        value={newTeacher.subjects}
+                        onChange={(e) => setNewTeacher({...newTeacher, subjects: e.target.value})}
+                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+                      />
+                      <button
+                        onClick={addTeacher}
+                        className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+                      >
+                        <Plus />
+                        إضافة معلم
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {teachers.map(teacher => (
+                        <div key={teacher.id} className="bg-indigo-50 p-3 rounded-lg flex justify-between items-start">
+                          <div>
+                            <p className="font-bold text-indigo-900">{teacher.name}</p>
+                            <p className="text-sm text-gray-600">
+                              {teacher.subjects.join(' • ')}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => removeTeacher(teacher.id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h2 className="text-2xl font-bold text-indigo-800 mb-4 flex items-center gap-2">
+                      <BookOpen />
+                      الفصول الدراسية
+                    </h2>
+                    
+                    <div className="space-y-3 mb-4">
+                      <input
+                        type="text"
+                        placeholder="اسم الفصل (مثال: 1-أ)"
+                        value={newClass}
+                        onChange={(e) => setNewClass(e.target.value)}
+                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+                      />
+                      <button
+                        onClick={addClass}
+                        className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
+                      >
+                        <Plus />
+                        إضافة فصل
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {classes.map(className => (
+                        <div key={className} className="bg-green-50 p-3 rounded-lg flex justify-between items-center">
+                          <p className="font-bold text-green-900">{className}</p>
+                          <button
+                            onClick={() => removeClass(className)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {classes.length > 0 && teachers.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-2xl font-bold text-purple-800 flex items-center gap-2">
+                        <Settings />
+                        توزيع الحصص لكل فصل
+                      </h2>
+                      <button
+                        onClick={() => setShowAllocation(!showAllocation)}
+                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+                      >
+                        {showAllocation ? 'إخفاء' : 'عرض'} الإعدادات
+                      </button>
+                    </div>
+
+                    {showAllocation && (
+                      <div className="space-y-6">
+                        {classes.map(className => (
+                          <div key={className} className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50">
+                            <h3 className="text-xl font-bold text-purple-900 mb-3">الفصل: {className}</h3>
+                            <div className="grid md:grid-cols-3 gap-3">
+                              {getAllSubjects().map(subject => (
+                                <div key={subject} className="bg-white p-3 rounded-lg shadow">
+                                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                                    {subject}
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="30"
+                                    placeholder="عدد الحصص"
+                                    value={subjectAllocation[className]?.[subject] || ''}
+                                    onChange={(e) => updateAllocation(className, subject, e.target.value)}
+                                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            <div className="mt-3 text-sm text-gray-600">
+                              إجمالي الحصص المحددة: {
+                                Object.values(subjectAllocation[className] || {}).reduce((a, b) => a + b, 0)
+                              } / 30 حصة متاحة
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="text-center mb-6">
+                  <button
+                    onClick={generateSchedule}
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-12 py-4 rounded-xl text-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition shadow-lg"
+                  >
+                    توليد الجدول
+                  </button>
+                </div>
+
+                {schedule && (
+                  <div className="space-y-6">
+                    {classes.map(className => (
+                      <div key={className} className="bg-white rounded-xl shadow-lg p-6">
+                        <h3 className="text-2xl font-bold text-indigo-900 mb-4 text-center">
+                          جدول الفصل: {className}
+                        </h3>
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse">
+                            <thead>
+                              <tr className="bg-indigo-600 text-white">
+                                <th className="border border-indigo-500 p-3">الحصة</th>
+                                {days.map(day => (
+                                  <th key={day} className="border border-indigo-500 p-3">{day}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {periods.map((period, idx) => (
+                                <tr key={period} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                                  <td className="border border-gray-300 p-3 font-bold text-center bg-indigo-100">
+                                    {period}
+                                  </td>
+                                  {days.map(day => {
+                                    const slot = schedule[className][day][idx];
+                                    return (
+                                      <td key={day} className="border border-gray-300 p-3">
+                                        <div className="text-center">
+                                          <p className="font-bold text-indigo-900">{slot.subject}</p>
+                                          <p className="text-sm text-gray-600">{slot.teacher}</p>
+                                        </div>
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        ReactDOM.render(<TeacherScheduleApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
